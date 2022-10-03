@@ -1,0 +1,29 @@
+version: '3.4'
+
+services:
+  restaurant:
+    image: ${DOCKER_REGISTRY-}restaurant
+    build:
+      context: .
+      dockerfile: Restaurant\Restaurant\Dockerfile
+
+  apigetway:
+    image: ${DOCKER_REGISTRY-}apigetway
+    build:
+      context: .
+      dockerfile: ApiGetway\ApiGetway\Dockerfile
+
+
+  identity:
+    image: ${DOCKER_REGISTRY-}identity
+    build:
+      context: .
+      dockerfile: Identity\Identity\Dockerfile
+
+
+  reservation:
+    image: ${DOCKER_REGISTRY-}reservation
+    build:
+      context: .
+      dockerfile: Reservation\Reservation\Dockerfile
+
