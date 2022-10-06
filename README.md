@@ -27,14 +27,14 @@ Created Restaurant Booking System using Microservice, Asp.Net Core, CQRS, DDD, D
 
 # How to Generate token
 After start the mondoDb inside docker and applications(identity, restaurant, reservation,apigetway), Identity server will create default 3 user
-1. user name: admin1@gmail.com, password:123, role:admin
-2.user name: user1@gmail.com, password:123, role:user
-3.user name: customer@gmail.com, password:123, role:customer
+- user name: admin1@gmail.com, password:123, role:admin
+- user name: user1@gmail.com, password:123, role:user
+- user name: customer@gmail.com, password:123, role:customer
 ![alt text](https://raw.githubusercontent.com/mohdafzalansari/RestaurantBookingMicroservice/main/Images/GenerateToken.png)
 
 # All JWT details like aud, claims
 ![alt text](https://github.com/mohdafzalansari/RestaurantBookingMicroservice/blob/main/Images/Jwt.png)
 
 # Apis Swagger
-![alt text](https://github.com/mohdafzalansari/RestaurantBookingMicroservice/blob/main/Images/Swagger.png.png)
+![alt text](https://raw.githubusercontent.com/mohdafzalansari/RestaurantBookingMicroservice/main/Images/Swagger.png)
 
