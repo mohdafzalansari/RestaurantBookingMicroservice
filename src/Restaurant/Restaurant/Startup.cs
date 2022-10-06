@@ -1,19 +1,19 @@
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Restaurant.authPolicy.handler;
+using Restaurant.authPolicy.requirement;
+using Restaurant.CommonUtility.Constants;
 using Restaurant.Domain.Context;
 using Restaurant.Infrastructure.Filters;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace Restaurant
 {
@@ -29,15 +29,59 @@ namespace Restaurant
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers(opts => {
+            services.AddControllers(opts =>
+            {
                 opts.Filters.Add(typeof(CustomExceptionFilter));
             });
             services.AddMediatR(typeof(Startup).GetTypeInfo().Assembly);
-            services.AddSwaggerGen(c =>
+            services.AddSwaggerGen(option =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Restaurant", Version = "v1" });
+                option.SwaggerDoc("v1", new OpenApiInfo { Title = "Restaurant", Version = "v1" });
+                option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Please enter a valid token",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    BearerFormat = "JWT",
+                    Scheme = "Bearer"
+                });
+                option.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type=ReferenceType.SecurityScheme,
+                                Id="Bearer"
+                            }
+                        },
+                        new string[]{}
+                    }
+                });
             });
             services.AddScoped<IRestaurantContext, RestaurantContext>();
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(AppConstants.UserPolicy, policy =>
+                {
+                    policy.Requirements.Add(new UserRolePermission());
+                });
+                options.AddPolicy(AppConstants.CustomerPolicy, policy =>
+                {
+                    policy.Requirements.Add(new CustomerRolePermission());
+                });
+                options.AddPolicy(AppConstants.AdminPolicy, policy =>
+                {
+                    policy.Requirements.Add(new AdminRolePermission());
+                });
+            });
+
+            services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
+
+            ConfigureAuthService(services);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -53,6 +97,7 @@ namespace Restaurant
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
@@ -60,5 +105,23 @@ namespace Restaurant
                 endpoints.MapControllers();
             });
         }
+        private void ConfigureAuthService(IServiceCollection services)
+        {
+            //  prevent from mapping "sub" claim to nameidentifier.
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+
+            }).AddJwtBearer(options =>
+            {
+                options.Authority = Configuration.GetValue<string>("IdentitySection:url");
+                options.Audience = Configuration.GetValue<string>("IdentitySection:scope");
+                options.RequireHttpsMetadata = false;
+            });
+        }
+
     }
 }

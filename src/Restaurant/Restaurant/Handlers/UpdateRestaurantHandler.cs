@@ -5,6 +5,7 @@ using MongoDB.Driver;
 using Restaurant.Commands;
 using Restaurant.Domain.Context;
 using Restaurant.Infrastructure.Exceptions;
+using Restaurant.Queries;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,17 +34,16 @@ namespace Restaurant.Handlers
             {
                 if (request == null)
                     throw new RestaurantBadRequestException();
+                var existingRestaurant = await mediator.Send(new GetByIdRestaurantQuery() { Id = request.Id });
+                existingRestaurant.Name = request.Name;
+                existingRestaurant.Address = request.Address;
+                existingRestaurant.City = request.City;
+                existingRestaurant.Country = request.Country;
+                existingRestaurant.PinCode = request.PinCode;
 
                 var updateResult = await context
                             .Restaurants
-                            .ReplaceOneAsync(filter: g => g.Id == request.Id, replacement: new Domain.Restaurant
-                            {
-                                Name = request.Name,
-                                Address = request.Address,
-                                City = request.City,
-                                Country = request.Country,
-                                PinCode = request.PinCode,
-                            });
+                            .ReplaceOneAsync(filter: g => g.Id == request.Id, replacement: existingRestaurant);
 
                 return new UpdateRestaurantResponse();
             }

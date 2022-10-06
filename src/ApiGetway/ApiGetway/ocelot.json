@@ -1,0 +1,42 @@
+{
+  "ReRoutes": [
+    {
+      "DownstreamPathTemplate": "/api/{everything}", //Defines the route of actual endpoint of Microservices
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [ //Host and Port of Microservice will define here.
+        {
+          "Host": "localhost",
+          "Port": 5002
+        }
+      ],
+      "UpstreamPathTemplate": "/api/getway/reservation/{everything}", //The path at which the client will request the Ocelot API Gateway
+      "UpstreamHttpMethod": [ "Post", "Put", "Get", "Delete" ],
+      "Key": "reservation"
+    },
+    {
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5003
+        }
+      ],
+      "UpstreamPathTemplate": "/api/getway/restaurant/{everything}",
+      "UpstreamHttpMethod": [ "Post", "Put", "Get" ],
+      "Key": "restaurant"
+    }
+  ],
+  //"Aggregates": [
+  //  {
+  //    "ReRouteKeys": [
+  //      "reservation",
+  //      "restaurant"
+  //    ],
+  //    "UpstreamPathTemplate": ""
+  //  }
+  //],
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:5000/"
+  }
+}

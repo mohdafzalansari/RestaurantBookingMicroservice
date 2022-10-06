@@ -1,7 +1,9 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Restaurant.Commands;
+using Restaurant.CommonUtility.Constants;
 using Restaurant.Domain;
 using Restaurant.Infrastructure.Exceptions;
 using Restaurant.Queries;
@@ -15,7 +17,8 @@ using System.Threading.Tasks;
 namespace Restaurant.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Authorize(Policy = AppConstants.AdminPolicy)]
+    [Route("api/[controller]")]
     public class RestaurantController : ControllerBase
     {
 
@@ -49,8 +52,11 @@ namespace Restaurant.Controllers
         [ProducesResponseType(typeof(void), (int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(ExceptionMessage), (int)HttpStatusCode.BadRequest)]
         [HttpPost]
-        public async Task<IActionResult> CreateRestaurants([FromBody] CreateRestaurantCommond commond)
+        public async Task<IActionResult> CreateRestaurant([FromBody] CreateRestaurantCommond commond)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState.Values.ToList());
+
             await mediator.Send(commond);
             return NoContent();
         }
@@ -59,10 +65,12 @@ namespace Restaurant.Controllers
         [ProducesResponseType(typeof(void), (int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(ExceptionMessage), (int)HttpStatusCode.NotFound)]
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateClient(Guid id, [FromBody] UpdateRestaurantCommond request)
+        public async Task<IActionResult> UpdateRestaurant(Guid id, [FromBody] UpdateRestaurantCommond request)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState.Values.ToList());
+
             request.Id = id;
-            await mediator.Send(new GetByIdRestaurantQuery() { Id = request.Id });
             await mediator.Send(request);
             return NoContent();
         }
